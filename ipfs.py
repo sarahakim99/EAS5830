@@ -2,8 +2,8 @@ import requests
 import json
 
 
-INFURA_PROJECT_ID = "def845368e8e47529180a15c63d275dc"
-INFURA_PROJECT_SECRET = "vlxz8rT+r4FYb/JDC8cZNddHGRff10WIeV4pGOG7cMkDwz5IigLqRg"
+projectId = "def845368e8e47529180a15c63d275dc"
+projectSecret = "vlxz8rT+r4FYb/JDC8cZNddHGRff10WIeV4pGOG7cMkDwz5IigLqRg"
 endpoint = "https://ipfs.infura.io:5001"
 
 def pin_to_ipfs(data):

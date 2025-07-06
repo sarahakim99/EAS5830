@@ -26,6 +26,11 @@ def get_ape_info(ape_id):
     assert 9999 >= ape_id, f"{ape_id} must be less than 10,000"
 
     data = {'owner': "", 'image': "", 'eyes': ""}
+    contract = web3.eth.contract(address=contract_address, abi=abi)
+
+    # Get owner address
+    owner = contract.functions.ownerOf(ape_id).call()
+    data['owner'] = owner
 
     # YOUR CODE HERE
     token_uri = contract.functions.tokenURI(ape_id).call()

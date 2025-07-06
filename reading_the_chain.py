@@ -24,6 +24,20 @@ def connect_with_middleware(contract_json):
         d = d['bsc']
         address = d['address']
         abi = d['abi']
+        bnb_url = "https://data-seed-prebsc-1-s1.binance.org:8545/"
+    w3 = Web3(HTTPProvider(bnb_url))
+
+    # The second section requires you to inject middleware into your w3 object and
+    # create a contract object. Read more on the docs pages at https://web3py.readthedocs.io/en/stable/middleware.html
+    # and https://web3py.readthedocs.io/en/stable/web3.contract.html
+
+    # Inject middleware for BNB (POA) chains
+    w3.middleware_onion.inject(ExtraDataToPOAMiddleware(), layer=0)
+
+    # Create contract object
+    contract = w3.eth.contract(address=address, abi=abi)
+
+    return w3, contract
 
 
 def is_ordered_block(w3, block_num):

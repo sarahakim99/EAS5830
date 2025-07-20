@@ -25,7 +25,7 @@ def merkle_assignment():
     tree = build_merkle(leaves)
 
     # Select a random leaf and create a proof for that leaf
-    random_leaf_index = random.randint(1, len(primes) - 1)
+    random_leaf_index = 0 #TODO generate a random index from primes to claim (0 is already claimed)
     proof = prove_merkle(tree, random_leaf_index)
 
     # This is the same way the grader generates a challenge for sign_challenge()
@@ -37,7 +37,7 @@ def merkle_assignment():
         tx_hash = '0x'
         # TODO, when you are ready to attempt to claim a prime (and pay gas fees),
         #  complete this method and run your code with the following line un-commented
-        tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
+        # tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
 
 
 def generate_primes(num_primes):
@@ -46,22 +46,28 @@ def generate_primes(num_primes):
         returns list (with length n) of primes (as ints) in ascending order
     """
     primes_list = []
-    
+
+    #TODO YOUR CODE HERE
     if num_primes < 6:
         limit = 30
     else:
         import math
         limit = int(num_primes * (math.log(num_primes) + math.log(math.log(num_primes))))
     
+    # Create a boolean array "prime[0..limit]" and initialize
+    # all entries as true
     prime = [True] * (limit + 1)
     p = 2
     
     while p * p <= limit:
+        # If prime[p] is not changed, then it is a prime
         if prime[p]:
+            # Update all multiples of p
             for i in range(p * p, limit + 1, p):
                 prime[i] = False
         p += 1
     
+    # Collect all prime numbers
     for p in range(2, limit + 1):
         if prime[p]:
             primes_list.append(p)
@@ -76,12 +82,14 @@ def convert_leaves(primes_list):
         Converts the leaves (primes_list) to bytes32 format
         returns list of primes where list entries are bytes32 encodings of primes_list entries
     """
-    leaves = []
-    
+
+    # TODO YOUR CODE HERE
+    leaves=[]
     for prime in primes_list:
+        # Convert integer to bytes32 format
+        # Use 32 bytes (256 bits) to match bytes32 in Solidity
         prime_bytes = prime.to_bytes(32, 'big')
         leaves.append(prime_bytes)
-    
     return leaves
 
 
@@ -92,25 +100,31 @@ def build_merkle(leaves):
         tree[1] is the parent hashes, and so on until tree[n] which is the root hash
         the root hash produced by the "hash_pair" helper function
     """
+
+    #TODO YOUR CODE HERE
     tree = []
-    current_level = leaves[:]
-    tree.append(current_level[:])
+    current_level = leaves[:]  
+    tree.append(current_level[:])  
     
     while len(current_level) > 1:
         next_level = []
         
+
         for i in range(0, len(current_level), 2):
             if i + 1 < len(current_level):
+                
                 parent_hash = hash_pair(current_level[i], current_level[i + 1])
             else:
+                
                 parent_hash = current_level[i]
             
             next_level.append(parent_hash)
         
         current_level = next_level
-        tree.append(current_level[:])
+        tree.append(current_level[:])  
     
     return tree
+
 
 
 def prove_merkle(merkle_tree, random_indx):
@@ -121,21 +135,24 @@ def prove_merkle(merkle_tree, random_indx):
         returns a proof of inclusion as list of values
     """
     merkle_proof = []
+    # TODO YOUR CODE HERE
     current_index = random_indx
     
-    for level in range(len(merkle_tree) - 1):
+    for level in range(len(merkle_tree) - 1): 
         current_level = merkle_tree[level]
         
-        if current_index % 2 == 0:
+
+        if current_index % 2 == 0:  
             sibling_index = current_index + 1
-        else:
+        else:  
             sibling_index = current_index - 1
         
+
         if sibling_index < len(current_level):
             merkle_proof.append(current_level[sibling_index])
         
         current_index = current_index // 2
-    
+
     return merkle_proof
 
 
@@ -152,13 +169,12 @@ def sign_challenge(challenge):
     addr = acct.address
     eth_sk = acct.key
 
+    # TODO YOUR CODE HERE
     eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
     
-    # Use the account method directly and return the signature bytes
-    signed_msg = acct.sign_message(eth_encoded_msg)
-    
-    # Return the raw signature bytes, not hex
-    return addr, signed_msg.signature
+    eth_sig_obj = acct.sign_message(eth_encoded_msg)
+
+    return addr, "0x" + eth_sig_obj.signature.hex()
 
 
 def send_signed_msg(proof, random_leaf):
@@ -168,28 +184,31 @@ def send_signed_msg(proof, random_leaf):
         on the contract
     """
     chain = 'bsc'
-    
+
     acct = get_account()
     address, abi = get_contract_info(chain)
     w3 = connect_to(chain)
-    
+
+    # TODO YOUR CODE HERE
     contract = w3.eth.contract(address=address, abi=abi)
-    
     nonce = w3.eth.get_transaction_count(acct.address)
-    
     transaction = contract.functions.submit(proof, random_leaf).build_transaction({
         'from': acct.address,
         'nonce': nonce,
-        'gas': 200000,
-        'gasPrice': w3.to_wei('5', 'gwei'),
+        'gas': 200000,  # Estimate gas limit
+        'gasPrice': w3.to_wei('5', 'gwei'),  # Gas price for BSC testnet
     })
     
     signed_txn = acct.sign_transaction(transaction)
     
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
     
-    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    print(f"Transaction sent! Hash: {tx_hash.hex()}")
     
+    receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+    print(f"Transaction confirmed! Block: {receipt.blockNumber}")
+
+
     return tx_hash.hex()
 
 

@@ -154,9 +154,11 @@ def sign_challenge(challenge):
 
     eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
     
-    eth_sig_obj = acct.sign_message(eth_encoded_msg)
-
-    return addr, eth_sig_obj.signature.hex()
+    # Use the account method directly and return the signature bytes
+    signed_msg = acct.sign_message(eth_encoded_msg)
+    
+    # Return the raw signature bytes, not hex
+    return addr, signed_msg.signature
 
 
 def send_signed_msg(proof, random_leaf):

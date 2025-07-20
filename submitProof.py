@@ -172,8 +172,7 @@ def sign_challenge(challenge):
     # TODO YOUR CODE HERE
     eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
     
-    eth_sig_obj = eth_account.Account.sign_message(eth_encoded_msg, private_key=eth_sk)
-
+    eth_sig_obj = acct.sign_message(eth_encoded_msg)
 
     return addr, eth_sig_obj.signature.hex()
 
@@ -200,7 +199,7 @@ def send_signed_msg(proof, random_leaf):
         'gasPrice': w3.to_wei('5', 'gwei'),  # Gas price for BSC testnet
     })
     
-    signed_txn = w3.eth.account.sign_transaction(transaction, private_key=acct.key)
+    signed_txn = acct.sign_transaction(transaction)
     
     tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
     

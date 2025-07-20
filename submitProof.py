@@ -197,7 +197,7 @@ def send_signed_msg(proof, random_leaf):
     
     signed_txn = acct.sign_transaction(transaction)
     
-    tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+    tx_hash = w3.eth.send_raw_transaction(signed_txn.raw_transaction)
     
     print(f"Transaction sent! Hash: {tx_hash.hex()}")
     

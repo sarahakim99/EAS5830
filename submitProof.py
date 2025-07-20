@@ -165,16 +165,12 @@ def sign_challenge(challenge):
         claimed a prime
     """
     acct = get_account()
-
     addr = acct.address
-    eth_sk = acct.key
-
-    # TODO YOUR CODE HERE
     eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
-    
     eth_sig_obj = acct.sign_message(eth_encoded_msg)
-
-    return addr, "0x" + eth_sig_obj.signature.hex()
+    sig = "0x" + eth_sig_obj.signature.hex()
+    print(f"DEBUG signature: {sig}")
+    return addr, sig
 
 
 def send_signed_msg(proof, random_leaf):

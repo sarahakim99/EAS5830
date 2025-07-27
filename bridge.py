@@ -1,6 +1,5 @@
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
-from web3.middleware import ExtraDataToPOAMiddleware
+from web3.middleware import construct_sign_and_send_raw_middleware
 from datetime import datetime
 import json
 
@@ -16,9 +15,12 @@ def connect_to(chain):
         raise ValueError("Invalid chain name")
     
     w3 = Web3(Web3.HTTPProvider(api_url))
-    # Add POA middleware for both chains (they use Proof of Authority)
-    w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
-    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    
+    # For newer versions of Web3.py, POA middleware is handled differently
+    # These testnets should work without explicit POA middleware in most cases
+    # If you still need POA support, you can try:
+    # from web3.middleware import geth_poa_middleware
+    # w3.middleware_onion.inject(geth_poa_middleware, layer=0)
     
     return w3
 

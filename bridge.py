@@ -140,7 +140,7 @@ def handle_deposit_event(deposit_event, contract_info_path="contract_info.json")
         
         # Sign and send transaction
         signed = dest_w3.eth.account.sign_transaction(tx, warden_key)
-        tx_hash = dest_w3.eth.send_raw_transaction(signed.rawTransaction)
+        tx_hash = dest_w3.eth.send_raw_transaction(signed.raw_transaction)
         receipt = dest_w3.eth.wait_for_transaction_receipt(tx_hash)
         
         print(f"[{datetime.utcnow()}] Wrap transaction confirmed: {receipt['transactionHash'].hex()}")
@@ -196,7 +196,7 @@ def handle_unwrap_event(unwrap_event, contract_info_path="contract_info.json"):
         
         # Sign and send transaction
         signed = source_w3.eth.account.sign_transaction(tx, warden_key)
-        tx_hash = source_w3.eth.send_raw_transaction(signed.rawTransaction)
+        tx_hash = source_w3.eth.send_raw_transaction(signed.raw_transaction)
         receipt = source_w3.eth.wait_for_transaction_receipt(tx_hash)
         
         print(f"[{datetime.utcnow()}] Withdraw transaction confirmed: {receipt['transactionHash'].hex()}")

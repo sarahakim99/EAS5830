@@ -187,7 +187,7 @@ def handle_unwrap_event(unwrap_event, contract_info_path="contract_info.json"):
         
         tx = source_contract.functions.withdraw(underlying_token, recipient, amount).build_transaction({
             'from': warden_account.address,
-            'nonce': source_w3.eth.get_transaction_count(warden_account.address, 'pending')
+            'nonce': source_w3.eth.get_transaction_count(warden_account.address, 'pending'),
             'gas': gas_estimate + 10000,  # Add buffer for gas
             'gasPrice': source_w3.eth.gas_price
         })

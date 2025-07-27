@@ -67,8 +67,8 @@ def scan_blocks(chain, contract_info_path="contract_info.json"):
         if chain == 'source':
             # Look for Deposit events on source chain
             events = contract.events.Deposit.create_filter(
-                fromBlock=from_block, 
-                toBlock=current_block
+                from_block=from_block, 
+                to_block=current_block
             ).get_all_entries()
             
             for event in events:
@@ -78,8 +78,8 @@ def scan_blocks(chain, contract_info_path="contract_info.json"):
         elif chain == 'destination':
             # Look for Unwrap events on destination chain
             events = contract.events.Unwrap.create_filter(
-                fromBlock=from_block, 
-                toBlock=current_block
+                from_block=from_block, 
+                to_block=current_block
             ).get_all_entries()
             
             for event in events:

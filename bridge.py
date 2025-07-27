@@ -1,5 +1,4 @@
 from web3 import Web3
-from web3.middleware import construct_sign_and_send_raw_middleware
 from datetime import datetime
 import json
 

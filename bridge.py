@@ -15,11 +15,7 @@ def connect_to(chain):
     
     w3 = Web3(Web3.HTTPProvider(api_url))
     
-    # For newer versions of Web3.py, POA middleware is handled differently
-    # These testnets should work without explicit POA middleware in most cases
-    # If you still need POA support, you can try:
-    # from web3.middleware import geth_poa_middleware
-    # w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
     
     return w3
 
@@ -60,7 +56,7 @@ def scan_blocks(chain, contract_info_path="contract_info.json"):
         contract = w3.eth.contract(address=contract_address, abi=contract_abi)
         
         current_block = w3.eth.block_number
-        from_block = max(0, current_block - 10)  # Scan more blocks to catch events
+        from_block = max(0, current_block - 50)  # Scan more blocks to catch events
 
         print(f"[{datetime.utcnow()}] Scanning blocks {from_block} to {current_block} on {chain} chain")
 

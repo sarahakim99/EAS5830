@@ -1,4 +1,6 @@
 from web3 import Web3
+from web3.middleware import geth_poa_middleware
+from web3.middleware import ExtraDataToPOAMiddleware
 from datetime import datetime
 import json
 
@@ -9,11 +11,11 @@ def connect_to(chain):
         api_url = "https://data-seed-prebsc-1-s1.binance.org:8545/"
     else:
         raise ValueError("Invalid chain name")
-
+    
     w3 = Web3(Web3.HTTPProvider(api_url))
-    # Removed ExtraDataToPOAMiddleware injection
-    if not w3.isConnected():
-        print(f"Failed to connect to {chain} chain")
+    w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
+    # In case you need POA middleware (Binance testnet is POA)
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
     return w3
 
 def get_contract_info(chain, contract_info_path="contract_info.json"):
@@ -80,7 +82,7 @@ def handle_deposit_event(deposit_event, contract_info_path="contract_info.json")
     warden_account = dest_w3.eth.account.from_key(WARDEN_KEY)
 
     try:
-        gas_estimate = dest_contract.functions.wrap(token, recipient, amount).estimateGas({'from': warden_account.address})
+        gas_estimate = dest_contract.functions.wrap(token, recipient, amount).estimate_gas({'from': warden_account.address})
         tx = dest_contract.functions.wrap(token, recipient, amount).build_transaction({
             'from': warden_account.address,
             'nonce': dest_w3.eth.get_transaction_count(warden_account.address),
@@ -90,16 +92,16 @@ def handle_deposit_event(deposit_event, contract_info_path="contract_info.json")
         signed = dest_w3.eth.account.sign_transaction(tx, WARDEN_KEY)
         tx_hash = dest_w3.eth.send_raw_transaction(signed.rawTransaction)
         receipt = dest_w3.eth.wait_for_transaction_receipt(tx_hash)
-        print(f"[{datetime.utcnow()}] Wrap transaction confirmed: {receipt.transactionHash.hex()}")
+        print(f"[{datetime.utcnow()}] Wrap transaction confirmed: {receipt['transactionHash'].hex()}")
     except Exception as e:
         print(f"Error in wrap transaction: {e}")
 
 def handle_unwrap_event(unwrap_event, contract_info_path="contract_info.json"):
-    print(f"[{datetime.utcnow()}] Handling Unwrap event - calling unwrap() on source chain")
+    print(f"[{datetime.utcnow()}] Handling Unwrap event - calling withdraw() on source chain")
 
     args = unwrap_event['args']
-    underlying = Web3.to_checksum_address(args['underlying'])
-    recipient = Web3.to_checksum_address(args['recipient'])
+    underlying_token = Web3.to_checksum_address(args['underlying_token'])
+    recipient = Web3.to_checksum_address(args['to'])
     amount = args['amount']
 
     source_w3 = connect_to('source')
@@ -110,8 +112,8 @@ def handle_unwrap_event(unwrap_event, contract_info_path="contract_info.json"):
     warden_account = source_w3.eth.account.from_key(WARDEN_KEY)
 
     try:
-        gas_estimate = source_contract.functions.unwrap(underlying, recipient, amount).estimateGas({'from': warden_account.address})
-        tx = source_contract.functions.unwrap(underlying, recipient, amount).build_transaction({
+        gas_estimate = source_contract.functions.withdraw(underlying_token, recipient, amount).estimate_gas({'from': warden_account.address})
+        tx = source_contract.functions.withdraw(underlying_token, recipient, amount).build_transaction({
             'from': warden_account.address,
             'nonce': source_w3.eth.get_transaction_count(warden_account.address),
             'gas': gas_estimate + 10000,
@@ -120,9 +122,11 @@ def handle_unwrap_event(unwrap_event, contract_info_path="contract_info.json"):
         signed = source_w3.eth.account.sign_transaction(tx, WARDEN_KEY)
         tx_hash = source_w3.eth.send_raw_transaction(signed.rawTransaction)
         receipt = source_w3.eth.wait_for_transaction_receipt(tx_hash)
-        print(f"[{datetime.utcnow()}] Unwrap transaction confirmed: {receipt.transactionHash.hex()}")
+        print(f"[{datetime.utcnow()}] Withdraw transaction confirmed: {receipt['transactionHash'].hex()}")
     except Exception as e:
-        print(f"Error in unwrap transaction: {e}")
+        print(f"Error in withdraw transaction: {e}")
 
 if __name__ == "__main__":
-    print(f"[{datetime.utcnow()}] Starting bridge script..."
+    print(f"[{datetime.utcnow()}] Starting bridge script...")
+    scan_blocks('source')
+    scan_blocks('destination')

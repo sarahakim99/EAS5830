@@ -60,7 +60,7 @@ def scan_blocks(chain, contract_info_path="contract_info.json"):
         contract = w3.eth.contract(address=contract_address, abi=contract_abi)
         
         current_block = w3.eth.block_number
-        from_block = max(0, current_block - 4)
+        from_block = max(0, current_block - 10)  # Scan more blocks to catch events
 
         print(f"[{datetime.utcnow()}] Scanning blocks {from_block} to {current_block} on {chain} chain")
 
@@ -81,6 +81,8 @@ def scan_blocks(chain, contract_info_path="contract_info.json"):
                 from_block=from_block, 
                 to_block=current_block
             ).get_all_entries()
+            
+            print(f"[{datetime.utcnow()}] Found {len(events)} Unwrap events")
             
             for event in events:
                 print(f"[{datetime.utcnow()}] Found Unwrap event: {event}")

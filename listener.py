@@ -50,11 +50,14 @@ def scan_blocks(chain, start_block, end_block, contract_address, eventfile='depo
     else:
         print( f"Scanning blocks {start_block} - {end_block} on {chain}" )
 
+    # List to collect all events
+    all_events = []
+    
     if end_block - start_block < 30:
-        event_filter = contract.events.Deposit.create_filter(from_block=start_block,to_block=end_block,argument_filters=arg_filter)
+        event_filter = contract.events.Deposit.createFilter(fromBlock=start_block,toBlock=end_block,argument_filters=arg_filter)
         events = event_filter.get_all_entries()
-        #print( f"Got {len(events)} entries for block {block_num}" )
-        # TODO YOUR CODE HERE
+        
+        # Process events and add to list
         for evt in events:
             event_data = {
                 'chain': chain,
@@ -68,10 +71,10 @@ def scan_blocks(chain, start_block, end_block, contract_address, eventfile='depo
             all_events.append(event_data)
     else:
         for block_num in range(start_block,end_block+1):
-            event_filter = contract.events.Deposit.create_filter(from_block=block_num,to_block=block_num,argument_filters=arg_filter)
+            event_filter = contract.events.Deposit.createFilter(fromBlock=block_num,toBlock=block_num,argument_filters=arg_filter)
             events = event_filter.get_all_entries()
-            #print( f"Got {len(events)} entries for block {block_num}" )
-            # TODO YOUR CODE HERE
+            
+            # Process events and add to list
             for evt in events:
                 event_data = {
                     'chain': chain,
@@ -83,7 +86,8 @@ def scan_blocks(chain, start_block, end_block, contract_address, eventfile='depo
                     'date': datetime.now().strftime('%m/%d/%Y %H:%M:%S')
                 }
                 all_events.append(event_data)
-    
+
+    # Write events to CSV file
     if all_events:
         file_exists = Path(eventfile).exists()
         df = pd.DataFrame(all_events)
@@ -92,6 +96,7 @@ def scan_blocks(chain, start_block, end_block, contract_address, eventfile='depo
         print(f"Recorded {len(all_events)} Deposit events to {eventfile}")
     else:
         print("No Deposit events found in the specified block range")
+
         if not Path(eventfile).exists():
             headers = ['chain', 'token', 'recipient', 'amount', 'transactionHash', 'address', 'date']
             pd.DataFrame(columns=headers).to_csv(eventfile, index=False)
